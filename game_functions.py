@@ -34,9 +34,9 @@ def update_screen(ai_settings, screen, ship):
     """update images on the screen and flip to the new screen"""
     # redraw the screen during each pass through the loop
     screen.fill(ai_settings.bg_color)
+    #screen.blit(ai_settings.bg_image.convert(), [0, 0])
     ship.blitme()
 
     # make the most recently drawn screen visible
     pygame.display.flip()
-
 
