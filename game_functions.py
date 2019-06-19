@@ -26,7 +26,7 @@ def check_keyup_events(event, ship):
     elif event.key == pygame.K_LEFT:
         ship.moving_left = False
 
-def check_events(ai_settings, screen, stats, play_button, ship, aliens, bullets):
+def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets):
     """respond to keypresses and mouse events"""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -38,9 +38,9 @@ def check_events(ai_settings, screen, stats, play_button, ship, aliens, bullets)
             check_keyup_events(event, ship)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
-            check_play_button(ai_settings, screen, stats, play_button, ship, aliens, bullets, mouse_x, mouse_y)
+            check_play_button(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets, mouse_x, mouse_y)
 
-def check_play_button(ai_settings, screen, stats, play_button, ship, aliens, bullets, mouse_x, mouse_y):
+def check_play_button(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets, mouse_x, mouse_y):
     """start a new game when the player clicks play"""
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
@@ -53,6 +53,12 @@ def check_play_button(ai_settings, screen, stats, play_button, ship, aliens, bul
         # reset the game statistics
         stats.reset_stats()
         stats.game_active = True
+
+        # reset teh scoreboard images
+        sb.prep_score()
+        sb.prep_high_score()
+        sb.prep_level()
+        sb.prep_ships()
 
         # empty the list of aliens and bullets
         aliens.empty()
@@ -108,16 +114,24 @@ def check_bullet_collisions(ai_settings, screen, stats, sb, ship, aliens, bullet
 
     # repopulating fleet when all aliens disappear
     if len(aliens) == 0:
-        # destroy existing bullets, speedup game and create new fleet
+        # destroy existing bullets, speedup game and create new fleet and start new level
         bullets.empty()
         ai_settings.increase_speed()
+
+        # increase level
+        stats.level += 1
+        sb.prep_level()
+
         create_fleet(ai_settings, screen, ship, aliens)
 
-def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
+def ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets):
     """respond to ship being hit by alien"""
     if stats.ships_left > 0:
         # decrement ships left
         stats.ships_left -= 1
+
+        # update scoreboard
+        sb.prep_ships()
         
         # empty the list of aliens and bullets
         aliens.empty()
@@ -130,21 +144,21 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
         # pause
         sleep(0.5)
 
-        print(stats.ships_left)
 
     else:
         stats.game_active = False
         pygame.mouse.set_visible(True)
 
-def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets):
+def check_aliens_bottom(ai_settings, screen, stats, sb, ship, aliens, bullets):
     """check if any aliens have reached the bottom of the screen"""
     screen_rect = screen.get_rect()
     for alien in aliens.sprites():
         if alien.rect.bottom >= screen_rect.bottom:
             # treat this the same as if a ship got hit
             ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+            break
 
-def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
+def update_aliens(ai_settings, screen, stats, sb,  ship, aliens, bullets):
     """update the position of aliens"""
     """
     Check if the fleet is at an edge and then update the position of
@@ -155,7 +169,7 @@ def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
 
     # look for alien-ship collision
     if pygame.sprite.spritecollideany(ship, aliens):
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+        ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets)
 
 def fire_bullet(ai_settings, screen, ship, bullets):
     """ Fire a bullet if limit is not reached"""
