@@ -73,7 +73,7 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship, aliens,
 def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets, play_button):
     """update images on the screen and flip to the new screen"""
     # redraw the screen during each pass through the loop
-    screen.fill(ai_settings.bg_color)
+    screen.blit(ai_settings.bg_image, (0,0))
     #screen.blit(pygame.image.load(ai_settings.bg_image).convert(), [0, 0])
 
     # redraw all ships behind ship and aliens
